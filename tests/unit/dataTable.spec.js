@@ -1,11 +1,12 @@
-import { mount, createLocalVue } from "@vue/test-utils";
+import { createLocalVue, mount } from "@vue/test-utils";
 import Vue from "vue";
 import Vuex from "vuex";
 import Vuetify from "vuetify";
+import userGetters from "../../src/store/modules/users/getters";
 
 Vue.use(Vuetify);
 
-import users from "../../src/store/dummy/users";
+import userData from "../../src/store/dummy/users";
 import DataTable from "@/components/DataTable.vue";
 
 const localVue = createLocalVue();
@@ -13,28 +14,37 @@ const localVue = createLocalVue();
 localVue.use(Vuex);
 
 describe("DataTable.vue", () => {
-  let getters;
   let store;
   let vuetify;
   let wrapper;
+  let state;
+  let actions;
   beforeEach(() => {
     vuetify = new Vuetify();
-    getters = {
-      getUsers: () => users
+
+    state = {
+      users: userData,
+      filter: ""
+    };
+
+    actions = {
+      moduleActionClick: jest.fn()
     };
 
     store = new Vuex.Store({
       modules: {
         users: {
+          state,
+          actions,
           namespaced: true,
-          getters
+          getters: userGetters
         }
       }
     });
   });
 
-  const mountFunction = options => {
-    return mount(DataTable, {
+  const mountFunction = (component, options) => {
+    return mount(component, {
       localVue,
       vuetify,
       store,
@@ -43,10 +53,11 @@ describe("DataTable.vue", () => {
   };
 
   it("should have dummy data", () => {
-    wrapper = mountFunction({
+    wrapper = mountFunction(DataTable, {
       stubs: ["v-table"]
     });
 
-    expect(wrapper.vm.users).toEqual(users);
+    expect(wrapper.is(DataTable)).toBe(true);
+    expect(wrapper.vm.users).toEqual(userData);
   });
 });
